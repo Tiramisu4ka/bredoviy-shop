@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bredoviy.shop — каталог</title>
+<meta property="og:type" content="website">
+<meta property="og:title" content="Bredoviy.shop — каталог">
+<meta property="og:description" content="Подборка одежды и обуви в наличии. Пиши в Telegram — ответим быстро.">
+<meta property="og:image" content="">
+<meta name="theme-color" content="#060810">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-a:#050611; --bg-b:#0a1330; --bg-c:#121b3f;
+  --card:rgba(255,255,255,.035); --card-h:rgba(140,170,255,.07);
+  --border:rgba(255,255,255,.09); --border-h:rgba(140,170,255,.4);
+  --text:#eef0f7; --dim:#8d94ad; --dim2:#5e6480;
+  --accent:#9fb4ff; --accent2:#6ee7c9; --glow:rgba(130,160,255,.35); --warn:#ffb86e;
+  --header-h:76px;
+  color-scheme: dark;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{height:100%;}
+body{
+  font-family:'Inter',sans-serif; color:var(--text); min-height:100%;
+  background:
+    radial-gradient(1200px 800px at 85% -5%, #000 0%, transparent 60%),
+    linear-gradient(135deg, #000000 0%, var(--bg-b) 55%, var(--bg-c) 100%);
+  background-attachment:fixed;
+  padding-top:var(--header-h,76px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+a{color:inherit; text-decoration:none;}
+::selection{background:var(--glow);}
+button{font-family:inherit;}
+input,textarea,select{font-family:inherit; color:var(--text); background:rgba(255,255,255,.04); border:1px solid var(--border); border-radius:10px; padding:10px 12px; font-size:14px;}
+input:focus,textarea:focus,select:focus{outline:none; border-color:var(--border-h);}
+
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:#05060dcc;}
+header{
+  position:fixed; top:0; left:0; right:0; z-index:50;
+  backdrop-filter:blur(16px); background:rgba(5,6,14,.72);
+  border-bottom:1px solid var(--border);
+  padding:calc(16px + env(safe-area-inset-top,0px)) 28px 16px;
+  display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap;
+}
+.logo{font-family:'Unbounded',sans-serif; font-weight:800; font-size:19px; letter-spacing:.2px;
+  background:linear-gradient(90deg,#fff,#aebcff 75%); -webkit-background-clip:text; background-clip:text; color:transparent;}
+.logo span{color:var(--accent2); -webkit-text-fill-color:var(--accent2);}
+.head-right{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+.search{width:180px; transition:.2s;}
+.search:focus{width:220px;}
+.search::placeholder{color:var(--dim2);}
+.btn{
+  display:inline-flex; align-items:center; gap:7px; padding:9px 16px; border-radius:10px;
+  font-size:14px; font-weight:500; border:1px solid var(--border); white-space:nowrap; transition:.2s; cursor:pointer; background:transparent; color:var(--text);
+}
+.btn-ghost:hover{border-color:var(--border-h); background:rgba(255,255,255,.04);}
+.btn-fill{background:linear-gradient(90deg,#4f6fe0,#6ee7c9); color:#05060f; font-weight:600; border:none;}
+.btn-fill:hover{filter:brightness(1.08);}
+.btn-warn{background:linear-gradient(90deg,#ffb86e,#ff8a65); color:#2a1400; font-weight:600; border:none;}
+.badge-admin{font-size:11px; color:#06070f; background:var(--warn); padding:3px 9px; border-radius:999px; font-weight:700;}
+
+.hero{padding:56px 28px 20px; max-width:1200px; margin:0 auto;}
+.hero h1{font-family:'Unbounded',sans-serif; font-weight:700; font-size:clamp(26px,4vw,42px); line-height:1.15; max-width:620px;}
+.hero p{color:var(--dim); margin-top:12px; max-width:520px; font-size:15px; line-height:1.6;}
+
+.tabs-wrap{max-width:1200px; margin:28px auto 0; padding:0 28px; display:flex; align-items:center; gap:14px;}
+.tabs{display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; scrollbar-width:none; flex:1;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{
+  flex:0 0 auto; padding:9px 18px; border-radius:999px; border:1px solid var(--border);
+  color:var(--dim); font-size:14px; cursor:pointer; background:transparent; transition:.2s;
+}
+.tab:hover{color:var(--text); border-color:var(--border-h);}
+.tab.active{background:var(--text); color:#06070f; border-color:var(--text); font-weight:600;}
+
+.grid{
+  max-width:1200px; margin:0 auto; padding:26px 28px 40px;
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:18px;
+}
+.card{
+  background:var(--card); border:1px solid var(--border); border-radius:16px; overflow:hidden;
+  cursor:pointer; transition:.25s ease; opacity:0; animation:rise .4s ease forwards; position:relative;
+}
+.card:hover{transform:translateY(-4px); border-color:var(--border-h); background:var(--card-h);
+  box-shadow:0 14px 34px -14px var(--glow);}
+@keyframes rise{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+.card-img{aspect-ratio:1/1.1; position:relative; overflow:hidden; background:#0a0d1c;}
+.card-img img{width:100%; height:100%; object-fit:cover; display:block;
+  filter:saturate(.82) contrast(1.06) brightness(.93);}
+.card-img::after{content:""; position:absolute; inset:0; pointer-events:none;
+  background:
+    radial-gradient(130% 100% at 50% 120%, rgba(10,15,35,.55), transparent 55%),
+    linear-gradient(185deg, rgba(20,25,55,.22), rgba(5,6,16,.4) 100%);
+  mix-blend-mode:multiply;}
+.card-info{padding:14px 15px 16px;}
+.card-cat{font-size:11px; color:var(--dim2); margin-bottom:4px;}
+.card-name{font-size:15px; font-weight:500; margin-bottom:8px;}
+.card-price{font-size:15px; font-weight:600; color:var(--accent2);}
+.card-del{position:absolute; top:8px; right:8px; z-index:3; width:28px; height:28px; border-radius:50%;
+  background:rgba(10,8,14,.75); border:1px solid var(--border); color:#fff; font-size:14px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;}
+.card-edit{position:absolute; top:8px; left:8px; z-index:3; width:28px; height:28px; border-radius:50%;
+  background:rgba(10,8,14,.75); border:1px solid var(--border); color:#fff; font-size:13px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;}
+.empty{color:var(--dim); padding:40px 0; text-align:center; grid-column:1/-1;}
+@media (max-width:768px){
+  header{padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px; gap:10px;}
+  .logo{font-size:16px;}
+  .search{width:120px;}
+  .search:focus{width:150px;}
+  .btn{padding:7px 12px; font-size:13px;}
+  .grid{grid-template-columns:repeat(2,1fr); gap:12px; padding:16px 14px 28px;}
+  .card{border-radius:12px;}
+  .card-img{aspect-ratio:3/4;}
+  .card-info{padding:10px 10px 12px;}
+  .card-cat{font-size:10px; margin-bottom:3px;}
+  .card-name{font-size:13px; margin-bottom:5px; line-height:1.3;}
+  .card-price{font-size:13px;}
+}
+
+.overlay{
+  position:fixed; inset:0; background:rgba(3,4,10,.78); backdrop-filter:blur(6px);
+  display:none; align-items:center; justify-content:center; z-index:50; padding:20px;
+}
+.overlay.open{display:flex;}
+.modal{
+  width:100%; max-width:860px; max-height:88vh; overflow:auto;
+  background:linear-gradient(160deg,#0b0e1f,#0a1024);
+  border:1px solid var(--border-h); border-radius:20px;
+  display:grid; grid-template-columns:1fr 1fr; position:relative;
+}
+.modal.form{display:block; max-width:520px; padding:28px;}
+@media (max-width:720px){.modal{grid-template-columns:1fr;}}
+.m-close{
+  position:absolute; top:14px; right:14px; width:34px; height:34px; border-radius:50%;
+  background:rgba(255,255,255,.08); border:1px solid var(--border); color:var(--text);
+  font-size:18px; cursor:pointer; z-index:5; display:flex; align-items:center; justify-content:center;
+}
+.gallery{position:relative;}
+.g-main{aspect-ratio:1/1; position:relative; overflow:hidden; background:#0a0d1c;}
+.g-main img{width:100%; height:100%; object-fit:cover; display:block;
+  filter:saturate(.82) contrast(1.06) brightness(.93);}
+.g-main::after{content:""; position:absolute; inset:0; pointer-events:none;
+  background:
+    radial-gradient(130% 100% at 50% 120%, rgba(10,15,35,.55), transparent 55%),
+    linear-gradient(185deg, rgba(20,25,55,.22), rgba(5,6,16,.4) 100%);
+  mix-blend-mode:multiply;}
+.g-arrow{
+  position:absolute; top:50%; transform:translateY(-50%); background:rgba(0,0,0,.45);
+  border:1px solid var(--border); width:36px; height:36px; border-radius:50%; color:#fff;
+  font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:2;
+}
+.g-arrow.prev{left:10px;} .g-arrow.next{right:10px;}
+.g-thumbs{display:flex; gap:8px; padding:10px; overflow-x:auto;}
+.g-thumb{width:52px; height:52px; border-radius:8px; flex:0 0 auto; cursor:pointer; opacity:.5; border:1px solid var(--border); overflow:hidden; background:#0a0d1c;}
+.g-thumb img{width:100%; height:100%; object-fit:cover; filter:saturate(.82) contrast(1.06) brightness(.9);}
+.g-thumb.active{opacity:1; border-color:var(--accent2);}
+.m-info{padding:26px 28px; display:flex; flex-direction:column;}
+.m-cat{color:var(--dim2); font-size:12px; margin-bottom:6px;}
+.m-name{font-family:'Unbounded',sans-serif; font-size:20px; font-weight:700; margin-bottom:10px;}
+.m-price{font-size:22px; color:var(--accent2); font-weight:700; margin-bottom:16px;}
+.m-sizes{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;}
+.size{padding:6px 13px; border:1px solid var(--border); border-radius:8px; font-size:13px; color:var(--dim);}
+.m-desc{color:var(--dim); font-size:14px; line-height:1.65; margin-bottom:20px; white-space:pre-line;}
+.m-actions{margin-top:auto; display:flex; gap:10px; flex-wrap:wrap;}
+
+.field{display:flex; flex-direction:column; gap:6px; margin-bottom:14px;}
+.field label{font-size:12px; color:var(--dim);}
+.field-row{display:flex; gap:10px;}
+.field-row .field{flex:1;}
+.form h2{font-family:'Unbounded',sans-serif; font-size:19px; margin-bottom:18px;}
+.form-foot{display:flex; gap:10px; margin-top:6px;}
+.note{margin-top:12px; font-size:13px; color:var(--warn); min-height:1em;}
+.fab{
+  position:fixed; right:22px; bottom:calc(22px + env(safe-area-inset-bottom,0px)); z-index:15;
+  width:54px; height:54px; border-radius:50%; background:linear-gradient(135deg,#4f6fe0,#6ee7c9);
+  color:#06070f; font-size:26px; border:none; cursor:pointer; box-shadow:0 10px 26px -8px var(--glow);
+  display:flex; align-items:center; justify-content:center;
+}
+
+footer{text-align:center; padding:30px; color:var(--dim2); font-size:12px;}
+.owner-link{
+  background:none; border:none; color:var(--dim2); font-size:13px; cursor:pointer;
+  margin-left:10px; padding:3px 8px; border-radius:6px; transition:.2s; vertical-align:middle; opacity:.6;
+}
+.owner-link:hover{color:var(--dim); background:rgba(255,255,255,.05); opacity:1;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Bredoviy<span>.shop</span></div>
+  <div class="head-right">
+    <input class="search" id="search" placeholder="Поиск по каталогу…">
+    <a class="btn btn-ghost" href="https://t.me/bredoviyshop" target="_blank" rel="noopener">Канал</a>
+    <a class="btn btn-fill" href="https://t.me/bredoviy" target="_blank" rel="noopener">Написать продавцу</a>
+  </div>
+</header>
+
+<section class="hero">
+  <h1>Вещи, которые не теряются в толпе.</h1>
+  <p>Подборка одежды и обуви в наличии. Пиши в Telegram — ответим быстро, скинем доп. фото и подтвердим размер.</p>
+</section>
+
+<div class="tabs-wrap">
+  <div class="tabs" id="tabs"></div>
+  <span class="badge-admin" id="adminBadge" style="display:none;">режим админа</span>
+</div>
+
+<div class="grid" id="grid"><div class="empty">Загружаю каталог…</div></div>
+
+<footer>
+  © Bredoviy.shop — всё, что на витрине, в наличии. Связь только через Telegram.
+  <button class="owner-link" id="ownerBtn" title="Вход для владельца">🔒 Вход для владельца</button>
+</footer>
+
+<button class="fab" id="fab" style="display:none;" title="Добавить товар">+</button>
+
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7"></script>
+<script>
+/* =========================================================================
+   НАСТРОЙКИ — меняй только тут
+   ========================================================================= */
+const SUPABASE_URL = 'https://tqqjytdyejzcwpmtrumq.supabase.co';
+// ⚠️ Вставь сюда настоящий anon public key из Supabase → Project Settings → API.
+// Это длинная строка вида "eyJhbGciOi...". То, что прислано как "tqqjytdyejzcwpmtrumq",
+// похоже на обрезанный URL проекта, а не на ключ — с ним запросы к базе работать не будут.
+const SUPABASE_ANON_KEY = 'sb_publishable_WdD_JBHypFlmp3IPmcvoXw_v8dVjnsk';ы
+const ADMIN_PASSWORD = 'bredoviy2026'; // пароль входа для владельца магазина
+const PRODUCTS_TABLE = 'products';
+const PRODUCTS_BUCKET = 'products';
+const MAX_PHOTOS = 6;
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const CATS = ["Все","Обувь","Низ","Верх","Кофты","Куртки"];
+const PLACEHOLDER_IMG = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="440"><rect width="100%" height="100%" fill="#0a0d1c"/></svg>'
+);
+
+let PRODUCTS = [];
+let isOwner = false;
+
+/* ---------- вкладки категорий ---------- */
+const tabsEl = document.getElementById('tabs');
+CATS.forEach(c=>{
+  const b = document.createElement('button');
+  b.className = 'tab' + (c==="Все" ? " active" : "");
+  b.textContent = c;
+  b.onclick = ()=>{ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); b.classList.add('active'); state.cat=c; render(); };
+  tabsEl.appendChild(b);
+});
+const state = { cat:"Все", q:"" };
+document.getElementById('search').addEventListener('input', e=>{ state.q = e.target.value.trim().toLowerCase(); render(); });
+
+function money(n){ return Number(n).toLocaleString('ru-RU') + ' ₸'; }
+function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+
+/* ---------- строка "Размеры: ..." живёт первой строкой в description,
+   чтобы не менять схему таблицы products (в ней нет отдельного поля sizes) ---------- */
+function splitSizesFromDescription(description){
+  const text = description || '';
+  const m = text.match(/^Размеры:\s*([^\n]*)\n?([\s\S]*)$/);
+  if(m) return { sizes: m[1].split(',').map(s=>s.trim()).filter(Boolean), desc: m[2].trim() };
+  return { sizes: [], desc: text.trim() };
+}
+function buildDescription(sizes, desc){
+  const sizesLine = sizes.length ? ('Размеры: ' + sizes.join(', ')) : '';
+  if(sizesLine && desc) return sizesLine + '\n' + desc;
+  return sizesLine || desc;
+}
+function mapRow(row){
+  const { sizes, desc } = splitSizesFromDescription(row.description);
+  const photos = Array.isArray(row.images) && row.images.length ? row.images : [PLACEHOLDER_IMG];
+  return { id: row.id, cat: row.category, name: row.title || '', price: row.price || 0, sizes, desc, photos };
+}
+
+/* ---------- рендер карточек ---------- */
+function render(){
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  const list = PRODUCTS.filter(p=>
+    (state.cat==="Все" || p.cat===state.cat) &&
+    (!state.q || p.name.toLowerCase().includes(state.q))
+  );
+  if(!list.length){ grid.innerHTML = '<div class="empty">Ничего не найдено — попробуй другую категорию или запрос.</div>'; return; }
+  list.forEach((p,idx)=>{
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.animationDelay = (idx*0.025)+'s';
+    card.innerHTML = `
+      ${isOwner ? '<button class="card-edit" title="Изменить">✎</button><button class="card-del" title="Удалить">✕</button>' : ''}
+      <div class="card-img"><img src="${p.photos[0]}" alt="${escapeHtml(p.name)}" loading="lazy"></div>
+      <div class="card-info">
+        <div class="card-cat">${escapeHtml(p.cat)}${p.sizes.length ? ' · размеры: ' + escapeHtml(p.sizes.join(', ')) : ''}</div>
+        <div class="card-name">${escapeHtml(p.name)}</div>
+        <div class="card-price">${money(p.price)}</div>
+      </div>`;
+    card.addEventListener('click', (e)=>{
+      if(e.target.closest('.card-del')) return;
+      openModal(p.id);
+    });
+    const delBtn = card.querySelector('.card-del');
+    if(delBtn) delBtn.onclick = (e)=>{ e.stopPropagation(); deleteProduct(p.id); };
+    const editBtn = card.querySelector('.card-edit');
+    if(editBtn) editBtn.onclick = (e)=>{ e.stopPropagation(); openEditForm(p); };
+    grid.appendChild(card);
+  });
+}
+
+/* ---------- модалка товара ---------- */
+let curPhoto = 0;
+let autoOpened = false;
+const metaDefaults = {
+  title: document.title,
+  desc: document.querySelector('meta[property="og:description"]')?.getAttribute('content') || '',
+  image: document.querySelector('meta[property="og:image"]')?.getAttribute('content') || ''
+};
+function setMeta(property, content){
+  let el = document.querySelector(`meta[property="${property}"]`);
+  if(!el){ el = document.createElement('meta'); el.setAttribute('property', property); document.head.appendChild(el); }
+  el.setAttribute('content', content);
+}
+function truncate(s, n){ s = (s||'').replace(/\s+/g,' ').trim(); return s.length>n ? s.slice(0,n-1)+'…' : s; }
+function updateMetaForProduct(p){
+  document.title = p.name + ' — Bredoviy.shop';
+  setMeta('og:title', p.name + ' — Bredoviy.shop');
+  setMeta('og:description', truncate(p.cat + ' · ' + money(p.price) + ' · ' + p.desc, 180));
+  setMeta('og:image', p.photos[0]);
+}
+function resetMeta(){
+  document.title = metaDefaults.title;
+  setMeta('og:title', metaDefaults.title);
+  setMeta('og:description', metaDefaults.desc);
+  setMeta('og:image', metaDefaults.image);
+}
+function openModal(id, updateHash){
+  if(updateHash === undefined) updateHash = true;
+  const p = PRODUCTS.find(x=>x.id===id);
+  if(!p) return;
+  curPhoto = 0;
+  const modal = document.getElementById('modal');
+  modal.className = 'modal';
+  const thumbs = p.photos.map((src,i)=>`<div class="g-thumb${i===0?' active':''}" data-i="${i}"><img src="${src}" alt=""></div>`).join('');
+  const itemUrl = location.origin + location.pathname + '#item-' + p.id;
+  const tgText = encodeURIComponent('Здраствуйте! Пишу вам с сайта Bredoviy.shop. ' + itemUrl);
+  const tgHref = 'https://t.me/bredoviy?text=' + tgText;
+  modal.innerHTML = `
+    <button class="m-close" id="mClose">✕</button>
+    <div class="gallery">
+      <div class="g-main" id="gMain"><img src="${p.photos[0]}" alt="${escapeHtml(p.name)}"></div>
+      ${p.photos.length>1 ? '<button class="g-arrow prev" id="gPrev">‹</button><button class="g-arrow next" id="gNext">›</button>' : ''}
+      ${p.photos.length>1 ? `<div class="g-thumbs" id="gThumbs">${thumbs}</div>` : ''}
+    </div>
+    <div class="m-info">
+      <div class="m-cat">${escapeHtml(p.cat)}</div>
+      <div class="m-name">${escapeHtml(p.name)}</div>
+      <div class="m-price">${money(p.price)}</div>
+      ${p.sizes.length ? `<div class="m-sizes">${p.sizes.map(s=>`<span class="size">${escapeHtml(s)}</span>`).join('')}</div>` : ''}
+      <div class="m-desc">${escapeHtml(p.desc)}</div>
+      <div class="m-actions">
+        <a class="btn btn-fill" href="${tgHref}" target="_blank" rel="noopener">Написать продавцу в Telegram</a>
+        <a class="btn btn-ghost" href="https://t.me/bredoviyshop" target="_blank" rel="noopener">Канал</a>
+      </div>
+    </div>`;
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('mClose').onclick = ()=> closeModal();
+  if(p.photos.length>1){
+    document.getElementById('gPrev').onclick = ()=> showPhoto(p, (curPhoto-1+p.photos.length)%p.photos.length);
+    document.getElementById('gNext').onclick = ()=> showPhoto(p, (curPhoto+1)%p.photos.length);
+    document.querySelectorAll('.g-thumb').forEach(t=> t.onclick = ()=> showPhoto(p, +t.dataset.i));
+    let touchX = null;
+    const gMain = document.getElementById('gMain');
+    gMain.addEventListener('touchstart', e=> touchX = e.touches[0].clientX);
+    gMain.addEventListener('touchend', e=>{
+      if(touchX===null) return;
+      const dx = e.changedTouches[0].clientX - touchX;
+      if(Math.abs(dx) > 40) showPhoto(p, (curPhoto + (dx<0?1:-1) + p.photos.length)%p.photos.length);
+      touchX = null;
+    });
+  }
+  if(updateHash) history.pushState(null, '', '#item-' + p.id);
+  updateMetaForProduct(p);
+}
+function showPhoto(p, i){
+  curPhoto = i;
+  document.getElementById('gMain').innerHTML = `<img src="${p.photos[i]}" alt="${escapeHtml(p.name)}">`;
+  document.querySelectorAll('.g-thumb').forEach(t=> t.classList.toggle('active', +t.dataset.i===i));
+}
+function closeModal(updateHash){
+  if(updateHash === undefined) updateHash = true;
+  document.getElementById('overlay').classList.remove('open');
+  if(updateHash && location.hash) history.pushState(null, '', location.pathname + location.search);
+  resetMeta();
+}
+document.getElementById('overlay').addEventListener('click', e=>{ if(e.target.id==='overlay') closeModal(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
+function syncModalFromHash(){
+  const m = location.hash.match(/^#item-(.+)$/);
+  if(m){
+    const p = PRODUCTS.find(x=> String(x.id) === m[1]);
+    if(p){ openModal(p.id, false); return; }
+  }
+  if(document.getElementById('overlay').classList.contains('open')) closeModal(false);
+}
+window.addEventListener('hashchange', syncModalFromHash);
+
+/* ---------- вход владельца ---------- */
+function updateAdminUI(){
+  document.getElementById('adminBadge').style.display = isOwner ? 'inline-flex' : 'none';
+  document.getElementById('fab').style.display = isOwner ? 'flex' : 'none';
+  document.getElementById('ownerBtn').textContent = isOwner ? '🔓 Выйти' : '🔒 Вход для владельца';
+  syncHeaderHeight();
+  render();
+}
+function ownerBtnClick(){
+  if(isOwner){
+    isOwner = false;
+    sessionStorage.removeItem('bredoviy_admin');
+    updateAdminUI();
+  } else {
+    openPasswordPrompt();
+  }
+}
+function openPasswordPrompt(){
+  const modal = document.getElementById('modal');
+  modal.className = 'modal form';
+  modal.innerHTML = `
+    <button class="m-close" id="mClose">✕</button>
+    <h2>Вход для владельца</h2>
+    <div class="field"><label>Пароль</label><input id="fPass" type="password" placeholder="••••••••" autofocus></div>
+    <div class="form-foot">
+      <button class="btn btn-fill" id="fLoginSubmit">Войти</button>
+      <button class="btn btn-ghost" id="fCancel">Отмена</button>
+    </div>
+    <div class="note" id="fNote"></div>`;
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('mClose').onclick = closeModal;
+  document.getElementById('fCancel').onclick = closeModal;
+  const submit = ()=>{
+    const val = document.getElementById('fPass').value;
+    if(val === ADMIN_PASSWORD){
+      isOwner = true;
+      sessionStorage.setItem('bredoviy_admin','1');
+      closeModal();
+      updateAdminUI();
+    } else {
+      document.getElementById('fNote').textContent = 'Неверный пароль.';
+    }
+  };
+  document.getElementById('fLoginSubmit').onclick = submit;
+  document.getElementById('fPass').addEventListener('keydown', e=>{ if(e.key==='Enter') submit(); });
+  document.getElementById('fPass').focus();
+}
+document.getElementById('ownerBtn').onclick = ownerBtnClick;
+document.getElementById('fab').onclick = openAddForm;
+
+/* ---------- загрузка фото в Supabase Storage ---------- */
+async function uploadPhotos(files){
+  const urls = [];
+  for(const file of files){
+    const extMatch = /\.([a-zA-Z0-9]+)$/.exec(file.name);
+    const ext = (extMatch ? extMatch[1] : 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
+    const path = `${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+    const { error: upErr } = await sb.storage.from(PRODUCTS_BUCKET).upload(path, file, { cacheControl:'3600', upsert:false });
+    if(upErr) throw upErr;
+    const { data } = sb.storage.from(PRODUCTS_BUCKET).getPublicUrl(path);
+    urls.push(data.publicUrl);
+  }
+  return urls;
+}
+
+/* ---------- добавление товара ---------- */
+function openAddForm(){
+  const modal = document.getElementById('modal');
+  modal.className = 'modal form';
+  modal.innerHTML = `
+    <button class="m-close" id="mClose">✕</button>
+    <h2>Новый товар</h2>
+    <div class="field-row">
+      <div class="field"><label>Категория</label>
+        <select id="fCat">${CATS.filter(c=>c!=="Все").map(c=>`<option>${c}</option>`).join('')}</select>
+      </div>
+      <div class="field"><label>Цена, ₸</label><input id="fPrice" type="number" min="0" placeholder="19900"></div>
+    </div>
+    <div class="field"><label>Название</label><input id="fName" placeholder="Например: Худи Heavy Cotton"></div>
+    <div class="field"><label>Размеры (через запятую, необязательно)</label><input id="fSizes" placeholder="S, M, L, XL"></div>
+    <div class="field"><label>Описание</label><textarea id="fDesc" rows="4" placeholder="Материал, цвет, состояние, замеры…"></textarea></div>
+    <div class="field"><label>Фото (1–${MAX_PHOTOS} шт.)</label><input id="fPhotos" type="file" accept="image/*" multiple></div>
+    <div class="form-foot">
+      <button class="btn btn-fill" id="fSubmit">Сохранить товар</button>
+      <button class="btn btn-ghost" id="fCancel">Отмена</button>
+    </div>
+    <div class="note" id="fNote"></div>`;
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('mClose').onclick = closeModal;
+  document.getElementById('fCancel').onclick = closeModal;
+  document.getElementById('fSubmit').onclick = submitAddForm;
+}
+async function submitAddForm(){
+  const cat = document.getElementById('fCat').value;
+  const price = Number(document.getElementById('fPrice').value || 0);
+  const name = document.getElementById('fName').value.trim();
+  const sizes = document.getElementById('fSizes').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const desc = document.getElementById('fDesc').value.trim();
+  const files = Array.from(document.getElementById('fPhotos').files || []).slice(0, MAX_PHOTOS);
+  const note = document.getElementById('fNote');
+  if(!name || !price || !files.length){
+    note.textContent = 'Заполни название, цену и минимум одно фото.';
+    return;
+  }
+  const submitBtn = document.getElementById('fSubmit');
+  submitBtn.textContent = 'Загружаю фото…';
+  submitBtn.disabled = true;
+  try{
+    const images = await uploadPhotos(files);
+    const description = buildDescription(sizes, desc);
+    const { error } = await sb.from(PRODUCTS_TABLE).insert({ title:name, price, category:cat, description, images });
+    if(error) throw error;
+    closeModal();
+    await loadProducts();
+  }catch(err){
+    note.textContent = 'Не удалось сохранить товар: ' + (err?.message || 'ошибка сервера');
+    submitBtn.textContent = 'Сохранить товар';
+    submitBtn.disabled = false;
+  }
+}
+
+/* ---------- редактирование товара ---------- */
+function openEditForm(p){
+  const modal = document.getElementById('modal');
+  modal.className = 'modal form';
+  modal.innerHTML = `
+    <button class="m-close" id="mClose">✕</button>
+    <h2>Изменить товар</h2>
+    <div class="field-row">
+      <div class="field"><label>Категория</label>
+        <select id="fCat">${CATS.filter(c=>c!=="Все").map(c=>`<option ${c===p.cat?'selected':''}>${c}</option>`).join('')}</select>
+      </div>
+      <div class="field"><label>Цена, ₸</label><input id="fPrice" type="number" min="0" value="${p.price}"></div>
+    </div>
+    <div class="field"><label>Название</label><input id="fName" value="${escapeHtml(p.name)}"></div>
+    <div class="field"><label>Размеры (через запятую)</label><input id="fSizes" value="${escapeHtml(p.sizes.join(', '))}"></div>
+    <div class="field"><label>Описание</label><textarea id="fDesc" rows="4">${escapeHtml(p.desc)}</textarea></div>
+    <div class="field"><label>Новые фото (необязательно — заменят текущие)</label><input id="fPhotos" type="file" accept="image/*" multiple></div>
+    <div class="form-foot">
+      <button class="btn btn-fill" id="fSubmit">Сохранить изменения</button>
+      <button class="btn btn-ghost" id="fCancel">Отмена</button>
+    </div>
+    <div class="note" id="fNote"></div>`;
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('mClose').onclick = closeModal;
+  document.getElementById('fCancel').onclick = closeModal;
+  document.getElementById('fSubmit').onclick = ()=> submitEditForm(p.id, p.photos);
+}
+async function submitEditForm(id, oldPhotos){
+  const cat = document.getElementById('fCat').value;
+  const price = Number(document.getElementById('fPrice').value || 0);
+  const name = document.getElementById('fName').value.trim();
+  const sizes = document.getElementById('fSizes').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const desc = document.getElementById('fDesc').value.trim();
+  const files = Array.from(document.getElementById('fPhotos').files || []).slice(0, MAX_PHOTOS);
+  const note = document.getElementById('fNote');
+  if(!name || !price){ note.textContent = 'Заполни название и цену.'; return; }
+  const submitBtn = document.getElementById('fSubmit');
+  submitBtn.textContent = 'Сохраняю…';
+  submitBtn.disabled = true;
+  try{
+    let images = oldPhotos.filter(u=>u!==PLACEHOLDER_IMG);
+    if(files.length){ images = await uploadPhotos(files); }
+    const description = buildDescription(sizes, desc);
+    const { error } = await sb.from(PRODUCTS_TABLE).update({ title:name, price, category:cat, description, images }).eq('id', id);
+    if(error) throw error;
+    closeModal();
+    await loadProducts();
+  }catch(err){
+    note.textContent = 'Не удалось сохранить: ' + (err?.message || 'ошибка сервера');
+    submitBtn.textContent = 'Сохранить изменения';
+    submitBtn.disabled = false;
+  }
+}
+
+/* ---------- удаление товара ---------- */
+async function deleteProduct(id){
+  if(!confirm('Удалить этот товар из каталога?')) return;
+  try{
+    const { error } = await sb.from(PRODUCTS_TABLE).delete().eq('id', id);
+    if(error) throw error;
+    await loadProducts();
+  }catch(err){
+    alert('Не удалось удалить: ' + (err?.message || 'ошибка сервера'));
+  }
+}
+
+/* ---------- загрузка товаров из Supabase + realtime ---------- */
+async function loadProducts(){
+  const { data, error } = await sb.from(PRODUCTS_TABLE).select('*').order('id', { ascending:true });
+  if(error){
+    document.getElementById('grid').innerHTML =
+      '<div class="empty">Не удалось загрузить каталог: ' + escapeHtml(error.message) + '</div>';
+    return;
+  }
+  PRODUCTS = (data || []).map(mapRow);
+  render();
+  if(!autoOpened){ autoOpened = true; syncModalFromHash(); }
+}
+function subscribeRealtime(){
+  sb.channel('public:' + PRODUCTS_TABLE)
+    .on('postgres_changes', { event:'*', schema:'public', table:PRODUCTS_TABLE }, ()=>{ loadProducts(); })
+    .subscribe();
+}
+// подстраховка на случай, если Realtime не включён в проекте (Database → Replication)
+setInterval(loadProducts, 60000);
+
+function syncHeaderHeight(){
+  const h = document.querySelector('header').offsetHeight;
+  document.documentElement.style.setProperty('--header-h', h + 'px');
+}
+window.addEventListener('resize', syncHeaderHeight);
+syncHeaderHeight();
+
+async function init(){
+  isOwner = sessionStorage.getItem('bredoviy_admin') === '1';
+  updateAdminUI();
+  await loadProducts();
+  subscribeRealtime();
+}
+init();
+</script>
+</body>
+</html>
