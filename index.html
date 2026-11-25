@@ -176,6 +176,10 @@ header{
 .form h2{font-family:'Unbounded',sans-serif; font-size:19px; margin-bottom:18px;}
 .form-foot{display:flex; gap:10px; margin-top:6px;}
 .note{margin-top:12px; font-size:13px; color:var(--warn); min-height:1em;}
+.cat-list{margin-top:16px; display:flex; flex-direction:column; gap:8px; max-height:240px; overflow:auto;}
+.cat-item{display:flex; align-items:center; justify-content:space-between; padding:8px 12px; border:1px solid var(--border); border-radius:10px; font-size:14px;}
+.cat-del{background:none; border:none; color:var(--dim); cursor:pointer; font-size:14px; padding:4px 8px; border-radius:6px; line-height:1;}
+.cat-del:hover{color:#fff; background:rgba(255,255,255,.08);}
 .fab{
   position:fixed; right:22px; bottom:calc(22px + env(safe-area-inset-bottom,0px)); z-index:15;
   width:54px; height:54px; border-radius:50%; background:linear-gradient(135deg,#4f6fe0,#6ee7c9);
@@ -210,6 +214,7 @@ footer{text-align:center; padding:30px; color:var(--dim2); font-size:12px;}
 <div class="tabs-wrap">
   <div class="tabs" id="tabs"></div>
   <span class="badge-admin" id="adminBadge" style="display:none;">режим админа</span>
+  <button class="btn btn-ghost" id="catManageBtn" style="display:none;" title="Управление категориями">⚙ Категории</button>
 </div>
 
 <div class="grid" id="grid"><div class="empty">Загружаю каталог…</div></div>
@@ -237,30 +242,60 @@ const SUPABASE_URL = 'https://tqqjytdyejzcwpmtrumq.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_WdD_JBHypFlmp3IPmcvoXw_v8dVjnsk';
 const ADMIN_PASSWORD = 'bredoviy2026'; // пароль входа для владельца магазина
 const PRODUCTS_TABLE = 'products';
+const CATEGORIES_TABLE = 'categories';
 const PRODUCTS_BUCKET = 'products';
 const MAX_PHOTOS = 6;
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const CATS = ["Все","Обувь","Низ","Верх","Кофты","Куртки"];
 const PLACEHOLDER_IMG = 'data:image/svg+xml;utf8,' + encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="440"><rect width="100%" height="100%" fill="#0a0d1c"/></svg>'
 );
 
 let PRODUCTS = [];
+let CATEGORIES = []; // [{id, name, sort_order}], без "Все" — она всегда первой и жёстко задана
 let isOwner = false;
-
-/* ---------- вкладки категорий ---------- */
-const tabsEl = document.getElementById('tabs');
-CATS.forEach(c=>{
-  const b = document.createElement('button');
-  b.className = 'tab' + (c==="Все" ? " active" : "");
-  b.textContent = c;
-  b.onclick = ()=>{ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); b.classList.add('active'); state.cat=c; render(); };
-  tabsEl.appendChild(b);
-});
 const state = { cat:"Все", q:"" };
 document.getElementById('search').addEventListener('input', e=>{ state.q = e.target.value.trim().toLowerCase(); render(); });
+
+/* ---------- вкладки категорий (динамические, из Supabase) ---------- */
+function renderTabs(){
+  const tabsEl = document.getElementById('tabs');
+  tabsEl.innerHTML = '';
+  const names = ["Все", ...CATEGORIES.map(c=>c.name)];
+  if(!names.includes(state.cat)) state.cat = "Все";
+  names.forEach(c=>{
+    const b = document.createElement('button');
+    b.className = 'tab' + (c===state.cat ? " active" : "");
+    b.textContent = c;
+    b.onclick = ()=>{ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); b.classList.add('active'); state.cat=c; render(); };
+    tabsEl.appendChild(b);
+  });
+}
+async function loadCategories(){
+  const { data, error } = await sb.from(CATEGORIES_TABLE).select('*').order('sort_order', { ascending:true }).order('id', { ascending:true });
+  if(error){ console.error('Не удалось загрузить категории:', error.message); return; }
+  CATEGORIES = data || [];
+  renderTabs();
+}
+async function addCategory(name){
+  name = (name || '').trim();
+  if(!name) throw new Error('Введи название категории.');
+  const { error } = await sb.from(CATEGORIES_TABLE).insert({ name });
+  if(error) throw error;
+  await loadCategories();
+}
+async function deleteCategory(id){
+  const { error } = await sb.from(CATEGORIES_TABLE).delete().eq('id', id);
+  if(error) throw error;
+  await loadCategories();
+}
+function subscribeCategoriesRealtime(){
+  sb.channel('public:' + CATEGORIES_TABLE)
+    .on('postgres_changes', { event:'*', schema:'public', table:CATEGORIES_TABLE }, ()=>{ loadCategories(); })
+    .subscribe();
+}
+setInterval(loadCategories, 60000);
 
 function money(n){ return Number(n).toLocaleString('ru-RU') + ' ₸'; }
 function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
@@ -418,6 +453,7 @@ window.addEventListener('hashchange', syncModalFromHash);
 function updateAdminUI(){
   document.getElementById('adminBadge').style.display = isOwner ? 'inline-flex' : 'none';
   document.getElementById('fab').style.display = isOwner ? 'flex' : 'none';
+  document.getElementById('catManageBtn').style.display = isOwner ? 'inline-flex' : 'none';
   document.getElementById('ownerBtn').textContent = isOwner ? '🔓 Выйти' : '🔒 Вход для владельца';
   syncHeaderHeight();
   render();
@@ -463,6 +499,71 @@ function openPasswordPrompt(){
 }
 document.getElementById('ownerBtn').onclick = ownerBtnClick;
 document.getElementById('fab').onclick = openAddForm;
+document.getElementById('catManageBtn').onclick = openCategoriesManager;
+
+/* ---------- управление категориями ---------- */
+function openCategoriesManager(){
+  const modal = document.getElementById('modal');
+  modal.className = 'modal form';
+  modal.innerHTML = `
+    <button class="m-close" id="mClose">✕</button>
+    <h2>Управление категориями</h2>
+    <div class="field-row">
+      <div class="field" style="flex:1"><label>Новая категория</label><input id="fNewCat" placeholder="Например: Аксессуары"></div>
+    </div>
+    <div class="form-foot">
+      <button class="btn btn-fill" id="fAddCat">Добавить</button>
+      <button class="btn btn-ghost" id="fCancel">Закрыть</button>
+    </div>
+    <div class="cat-list" id="catList"></div>
+    <div class="note" id="fNote"></div>`;
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('mClose').onclick = closeModal;
+  document.getElementById('fCancel').onclick = closeModal;
+  const note = document.getElementById('fNote');
+  document.getElementById('fAddCat').onclick = async ()=>{
+    const input = document.getElementById('fNewCat');
+    const name = input.value.trim();
+    if(!name){ note.textContent = 'Введи название категории.'; return; }
+    const addBtn = document.getElementById('fAddCat');
+    addBtn.disabled = true;
+    try{
+      await addCategory(name);
+      input.value = '';
+      note.textContent = '';
+      renderCatList();
+    }catch(err){
+      note.textContent = 'Не удалось добавить: ' + (err?.message || 'такая категория уже существует?');
+    }
+    addBtn.disabled = false;
+  };
+  renderCatList();
+}
+function renderCatList(){
+  const list = document.getElementById('catList');
+  if(!list) return;
+  if(!CATEGORIES.length){
+    list.innerHTML = '<div style="color:var(--dim); font-size:13px;">Категорий пока нет — добавь первую выше.</div>';
+    return;
+  }
+  list.innerHTML = CATEGORIES.map(c=>`
+    <div class="cat-item" data-id="${c.id}">
+      <span>${escapeHtml(c.name)}</span>
+      <button class="cat-del" title="Удалить категорию">✕</button>
+    </div>`).join('');
+  list.querySelectorAll('.cat-item').forEach(row=>{
+    const id = Number(row.dataset.id);
+    row.querySelector('.cat-del').onclick = async ()=>{
+      if(!confirm('Удалить эту категорию? Товары, которые были в ней, останутся в каталоге, но перестанут попадать в этот фильтр.')) return;
+      try{
+        await deleteCategory(id);
+        renderCatList();
+      }catch(err){
+        alert('Не удалось удалить: ' + (err?.message || 'ошибка сервера'));
+      }
+    };
+  });
+}
 
 /* ---------- загрузка фото в Supabase Storage ---------- */
 async function uploadPhotos(files){
@@ -488,7 +589,7 @@ function openAddForm(){
     <h2>Новый товар</h2>
     <div class="field-row">
       <div class="field"><label>Категория</label>
-        <select id="fCat">${CATS.filter(c=>c!=="Все").map(c=>`<option>${c}</option>`).join('')}</select>
+        <select id="fCat">${CATEGORIES.map(c=>`<option>${escapeHtml(c.name)}</option>`).join('')}</select>
       </div>
       <div class="field"><label>Цена, ₸</label><input id="fPrice" type="number" min="0" placeholder="19900"></div>
     </div>
@@ -544,7 +645,7 @@ function openEditForm(p){
     <h2>Изменить товар</h2>
     <div class="field-row">
       <div class="field"><label>Категория</label>
-        <select id="fCat">${CATS.filter(c=>c!=="Все").map(c=>`<option ${c===p.cat?'selected':''}>${c}</option>`).join('')}</select>
+        <select id="fCat">${CATEGORIES.map(c=>`<option ${c.name===p.cat?'selected':''}>${escapeHtml(c.name)}</option>`).join('')}</select>
       </div>
       <div class="field"><label>Цена, ₸</label><input id="fPrice" type="number" min="0" value="${p.price}"></div>
     </div>
@@ -631,8 +732,10 @@ syncHeaderHeight();
 async function init(){
   isOwner = sessionStorage.getItem('bredoviy_admin') === '1';
   updateAdminUI();
+  await loadCategories();
   await loadProducts();
   subscribeRealtime();
+  subscribeCategoriesRealtime();
 }
 init();
 </script>
